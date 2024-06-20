@@ -1,18 +1,17 @@
-version: "3.9"  # Update to the latest supported version (currently 3.9)
+version: "3.9"  # Latest supported version for wider compatibility
 
 networks:
-  ds-wordpress-net:  # Use a more generic network name
-    driver: bridge
+  ds-wordpress-net:  # Clear and descriptive network name
 
 services:
   mysql:
-    image: mysql:8.0  # Use a more recent and secure MySQL version
+    image: mysql:8.0  # Use a recent and secure MySQL version (consider 8.0.30 for stability)
     container_name: ds-wordpress-mysql
     restart: unless-stopped  # Restart container automatically on crashes
     volumes:
-      - mysql-data:/var/lib/mysql  # Use a named volume for persistence
+      - mysql-data:/var/lib/mysql  # Named volume for persistent data
     environment:
-      MYSQL_ROOT_PASSWORD: "your_strong_password"  # Use a strong password, avoid numbers only
+      MYSQL_ROOT_PASSWORD: "your_strong_password"  # Enforce strong password with letters, numbers, and symbols
       MYSQL_DATABASE: wordpress
       MYSQL_USER: marvin
       MYSQL_PASSWORD: "your_strong_password"
@@ -20,36 +19,37 @@ services:
       - ds-wordpress-net
 
   server:
-    image: wordpress:latest
+    image: wordpress:latest  # Leverage latest stable WordPress image
     container_name: ds-wordpress
     ports:
-      - "80:80"  # Map to standard port 80 for easier access
+      - "80:80"  # Standard port mapping for web access
     volumes:
-      - wordpress-data:/var/www/html  # Use a named volume for persistence
+      - wordpress-data:/var/www/html  # Named volume for persistent WordPress content
     environment:
       WORDPRESS_DB_USER: marvin
       WORDPRESS_DB_PASSWORD: "your_strong_password"
       WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_HOST: mysql  # Simplified hostname within the network
+      WORDPRESS_DB_HOST: mysql  # Simplified hostname within network
     depends_on:
-      - mysql
+      - mysql  # Ensure MySQL is up before starting WordPress
     networks:
       - ds-wordpress-net
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin/phpmyadmin:latest  # Use latest stable phpMyAdmin image
     container_name: ds-phpmyadmin
     ports:
-      - "8080:80"  # Map to standard port 8080 for easier access
+      - "8081:80"  # Unique port mapping for easier access (avoid conflicts with WordPress)
     environment:
-      PMA_HOST: mysql  # Simplified hostname within the network
+      PMA_HOST: mysql  # Simplified hostname within network
       MYSQL_ROOT_PASSWORD: "your_strong_password"
     depends_on:
-      - mysql
+      - mysql  # Ensure MySQL is up before starting phpMyAdmin
     networks:
       - ds-wordpress-net
 
-# Define volumes for persistence (outside the service definitions)
+# Define volumes for persistence (outside service definitions)
 volumes:
-  mysql-data: {}
-  wordpress-data: {}
+  mysql-data: {}  # Empty dictionary for volume creation
+  wordpress-data: {}  # Empty dictionary for volume creation
+
