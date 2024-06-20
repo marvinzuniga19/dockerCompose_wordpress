@@ -28,7 +28,7 @@ services:
       - wordpress-data:/var/www/html  # Use a named volume for persistence
     environment:
       WORDPRESS_DB_USER: marvin
-      WORDPRESS_DB_PASSWORD: "marvin"
+      WORDPRESS_DB_PASSWORD: "your_strong_password"
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_HOST: mysql  # Simplified hostname within the network
     depends_on:
