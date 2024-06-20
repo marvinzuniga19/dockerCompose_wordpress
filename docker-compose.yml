@@ -1,51 +1,55 @@
-version: "3"
+version: "3.9"  # Update to the latest supported version (currently 3.9)
+
 networks:
-    ds-wordpress-6.1.1-net:
-        driver: bridge
+  ds-wordpress-net:  # Use a more generic network name
+    driver: bridge
 
 services:
-    mysql:
-        image: mysql:5.7
-        container_name: ds-wordpress-6.1.1-mysql
-        tty: true
-        ports:
-            - "4208:3306"
-        volumes:
-            - "./var/libclea/mysql/:/var/lib/mysql"
-        environment:
-            MYSQL_ROOT_PASSWORD: 1234
-            MYSQL_DATABASE: wordpress
-            MYSQL_USER: marvin
-            MYSQL_PASSWORD: 1234
-        networks:
-            - ds-wordpress-6.1.1-net
+  mysql:
+    image: mysql:8.0  # Use a more recent and secure MySQL version
+    container_name: ds-wordpress-mysql
+    restart: unless-stopped  # Restart container automatically on crashes
+    volumes:
+      - mysql-data:/var/lib/mysql  # Use a named volume for persistence
+    environment:
+      MYSQL_ROOT_PASSWORD: "your_strong_password"  # Use a strong password, avoid numbers only
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: marvin
+      MYSQL_PASSWORD: "your_strong_password"
+    networks:
+      - ds-wordpress-net
 
-    server:
-        image: wordpress:latest
-        container_name: ds-wordpress-6.1.1
-        ports:
-            - "4282:80"
-        volumes:
-            - "./var/www/html/:/var/www/html"
-        environment:
-            WORDPRESS_DB_USER: marvin
-            WORDPRESS_DB_PASSWORD: 1234
-            WORDPRESS_DB_NAME: wordpress
-            WORDPRESS_DB_HOST: ds-wordpress-6.1.1-mysql
-        depends_on:
-            - mysql
-        networks:
-            - ds-wordpress-6.1.1-net
+  server:
+    image: wordpress:latest
+    container_name: ds-wordpress
+    ports:
+      - "80:80"  # Map to standard port 80 for easier access
+    volumes:
+      - wordpress-data:/var/www/html  # Use a named volume for persistence
+    environment:
+      WORDPRESS_DB_USER: marvin
+      WORDPRESS_DB_PASSWORD: "your_strong_password"
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_HOST: mysql  # Simplified hostname within the network
+    depends_on:
+      - mysql
+    networks:
+      - ds-wordpress-net
 
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        container_name: ds-phpmyadmin
-        ports:
-            - "4283:80"
-        environment:
-            PMA_HOST: ds-wordpress-6.1.1-mysql
-            MYSQL_ROOT_PASSWORD: 1234
-        depends_on:
-            - mysql
-        networks:
-            - ds-wordpress-6.1.1-net
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ds-phpmyadmin
+    ports:
+      - "8080:80"  # Map to standard port 8080 for easier access
+    environment:
+      PMA_HOST: mysql  # Simplified hostname within the network
+      MYSQL_ROOT_PASSWORD: "your_strong_password"
+    depends_on:
+      - mysql
+    networks:
+      - ds-wordpress-net
+
+# Define volumes for persistence (outside the service definitions)
+volumes:
+  mysql-data: {}
+  wordpress-data: {}
